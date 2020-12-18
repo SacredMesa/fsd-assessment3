@@ -12,6 +12,8 @@ import { LoginComponent } from './components/login.component';
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { HttpClientModule } from '@angular/common/http'
 
+import {AuthService} from './auth.service';
+
 const ROUTES: Routes = [
 	{ path: '', component: LoginComponent },
 	{ path: 'main', component: MainComponent },
@@ -32,7 +34,7 @@ const ROUTES: Routes = [
     ReactiveFormsModule,
     HttpClientModule
   ],
-  providers: [ CameraService ],
+  providers: [ CameraService, AuthService ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
