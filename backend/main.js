@@ -35,7 +35,8 @@ const makeData = (params, image) => {
     return {
         title: params.title,
         comments: params.comments,
-        image: image
+        image: image,
+        ts: new Date()
     }
 }
 
@@ -143,30 +144,28 @@ app.post('/share', upload.single('picture'), async (req, res, next) => {
     console.info('>>> file: ', req.file)
 
     res.on('finish', () => {
-        fs.unlink(req.file.path, () => {})
+        fs.unlink(req.file.path, () => {
+        })
     })
-
-    const doc = makeData(req.body, req.file.filename)
-
-    console.log("THIS THE FINAL DATA TO ENTER", doc)
 
     readFile(req.file.path)
         .then(buff =>
             putObject(req.file, buff, s3)
         )
-        .then(() =>
-            mongoClient.db(MONGO_DB).collection(MONGO_COLLECTION)
+        .then(() => {
+            const doc = makeData(req.body, req.file.filename);
+            return mongoClient.db(MONGO_DB).collection(MONGO_COLLECTION)
                 .insertOne(doc)
-        )
+        })
         .then(results => {
             console.info('insert results: ', results)
             res.status(200)
-            res.json({ id: results.ops[0]._id })
+            res.json({id: results.ops[0]._id})
         })
         .catch(error => {
             console.error('insert error: ', error)
             res.status(500)
-            res.json({ error })
+            res.json({error})
         })
 
     return res.status(200);
