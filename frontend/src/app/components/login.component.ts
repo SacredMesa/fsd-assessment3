@@ -1,6 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {FormGroup, FormBuilder, Validators} from "@angular/forms";
 import {HttpClient, HttpHeaders, HttpParams} from "@angular/common/http";
+import {Router} from "@angular/router";
 
 
 @Component({
@@ -10,11 +11,11 @@ import {HttpClient, HttpHeaders, HttpParams} from "@angular/common/http";
 })
 export class LoginComponent implements OnInit {
 
-  errorMessage = 'Username or Password is Incorrect'
+  errorMessage = ''
 
   loginForm: FormGroup
 
-  constructor(private fb: FormBuilder, private http: HttpClient) {
+  constructor(private fb: FormBuilder, private http: HttpClient, private router: Router) {
   }
 
   ngOnInit(): void {
@@ -32,25 +33,25 @@ export class LoginComponent implements OnInit {
     console.info('form = ', this.loginForm.value)
     const value = this.loginForm.value
 
-    // fill in the form
     let params = new HttpParams()
     params = params.set('username', value['username'])
     params = params.set('password', value['password'])
 
-    // set the HTTP header
     let headers = new HttpHeaders()
     headers = headers.set('Content-Type',
       'application/x-www-form-urlencoded')
 
     // make the POST request
-    this.http.post<any>('http://localhost:3000/login',
+    this.http.post<any>('/login',
       params.toString(), {headers})
       .toPromise()
-      .then(resp => {
-        console.info('Response: ', resp)
+      .then(res => {
+        console.info('Response: ', res)
+        this.router.navigate(['/main'])
       })
-      .catch(err => {
-        console.error('ERROR: ', err)
+      .catch(e => {
+        console.error('ERROR: ', e)
+        this.errorMessage = 'Username or Password is Incorrect'
       })
 
   }

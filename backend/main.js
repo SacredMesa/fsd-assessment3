@@ -3,9 +3,13 @@ const morgan = require('morgan');
 const express = require('express');
 
 const mysql = require('mysql2/promise');
+const {MongoClient} = require('mongodb');
 const cors = require('cors')
 const dotenv = require('dotenv');
 dotenv.config();
+
+const crypto = require('crypto')
+const shaHash = crypto.createHash('sha1')
 
 // Instances
 const app = express();
@@ -15,6 +19,16 @@ app.use(cors());
 
 // Environment
 const PORT = parseInt(process.argv[2]) || parseInt(process.env.PORT) || 3000
+
+// Mongo Settings
+const MONGO_URL = 'mongodb://localhost:27017';
+const MONGO_DB = 'bgg';
+const MONGO_COLLECTION = 'bgg-reviews';
+
+const mongoClient = new MongoClient(MONGO_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+});
 
 // SQL Connection Pool
 const pool = mysql.createPool({
@@ -56,11 +70,11 @@ app.get("/", (req, res) => {
     res.render("")
 })
 
-app.get('/login', express.urlencoded({extended: true}),
+app.post('/login', express.urlencoded({extended: true}),
     async (req, res) => {
 
         let user = req.body.username;
-        let password = req.body.password;
+        let password = await shaHash.update(req.body.password).digest('hex');
 
         console.log("BODY IS: ", req.body)
         console.log("USER IS: ", user, "PASSWORD IS: ", password)
@@ -71,20 +85,13 @@ app.get('/login', express.urlencoded({extended: true}),
 
         if (authentication.length == 0) {
             console.log("USER NOT FOUND")
-            res.status(401)
+            return res.status(401).json(authentication)
         } else if (authentication[0].password !== password) {
             console.log("PASSWORD IS WRONG")
-            res.status(401)
+            return res.status(401).json(authentication)
         } else {
-            res.status(200)
+            return res.status(200).json(authentication)
         }
-
-
-
-
-
-        res.status(200).type('application/json')
-        res.json({message: 'accepted'})
     }
 )
 
